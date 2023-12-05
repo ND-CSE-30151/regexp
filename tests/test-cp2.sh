@@ -8,14 +8,7 @@ TMPDIR=${TMPDIR:-/tmp}/test-cp2.$$
 mkdir -p $TMPDIR
 trap "rm -rf $TMPDIR" EXIT
 trap "pkill -9 -g0; exit 130" INT
-
-assert_equal () {
-  if [ "$1" = "$2" ]; then
-    echo "PASSED"
-  else
-    echo "FAILED ($1 != $2)"
-  fi
-}
+set -o pipefail
 
 assert_true () {
   if [ $? -eq 0 ]; then
@@ -25,18 +18,24 @@ assert_true () {
   fi
 }
 
-assert_false () {
-  if [ $? -eq 1 ]; then
-    echo PASSED
+assert_equal () {
+  if [ "$1" = "$2" ]; then
+    echo "PASSED"
   else
-    echo FAILED
+    echo "FAILED"
+    echo "  correct output: $1"
+    echo "     your output: $2"
   fi
+}
+
+err () {
+  echo "(error)"
 }
 
 if [ -x "$SUBMIT/parse_re" ]; then
   for REGEXP in "(ab|a)*" "(a|b)*aba" "" "a" "a*" "ab" "abc" "abcd" "a|b" "a|b|c" "a|b|c|d" "a*b*" "(ab)*" "ab|cd" "(ab)|(cd)" "a*|b*" "(a|b)*" "(a)" "((a))" "a(b)" "(a)b" "()" "|" "(|)" "(a|)" "(|a)" "a||b"; do
     echo -n 'parse_re "'"$REGEXP"'": '
-    assert_equal "$("$BIN/parse_re" "$REGEXP")" "$("$SUBMIT/parse_re" "$REGEXP" | "$BIN/normalize_tree")"
+    assert_equal "$("$BIN/parse_re" "$REGEXP")" "$("$SUBMIT/parse_re" "$REGEXP" || err)"
   done
 else
   echo "parse_re: SKIPPED"
@@ -91,38 +90,38 @@ fi
 if [ -x "$SUBMIT/agrep" ]; then
     for W in "" a b aa ab ba bb aaa aab aba abb baa bab bba bbb; do
 	echo -n "agrep \"(ab|a)*\" \"$W\": "
-	assert_equal "$(echo "$W" | "$BIN/agrep" "(ab|a)*")" "$(echo "$W" | "$SUBMIT/agrep" "(ab|a)*")"
+	assert_equal "$(echo "$W" | "$BIN/agrep" "(ab|a)*")" "$(echo "$W" | "$SUBMIT/agrep" "(ab|a)*" || err)"
     done
 
     for W in "" a b aa ab ba bb aba abaa abab aaba baba aaaba ababa baaba bbaba; do
 	echo -n "agrep \"(a|b)*aba\" \"$W\": "
-	assert_equal "$(echo "$W" | "$BIN/agrep" "(a|b)*aba")" "$(echo "$W" | "$SUBMIT/agrep" "(a|b)*aba")"
+	assert_equal "$(echo "$W" | "$BIN/agrep" "(a|b)*aba")" "$(echo "$W" | "$SUBMIT/agrep" "(a|b)*aba" || err)"
     done
 
     for W in "" a; do
 	echo -n "agrep \"\" \"$W\": "
-	assert_equal "$(echo "$W" | "$BIN/agrep" "")" "$(echo "$W" | "$SUBMIT/agrep" "")"
+	assert_equal "$(echo "$W" | "$BIN/agrep" "")" "$(echo "$W" | "$SUBMIT/agrep" "" || err)"
     done
 
     for W in "" a; do
 	echo -n "agrep \"()*\" \"$W\": "
-	assert_equal "$(echo "$W" | "$BIN/agrep" "()*")" "$(echo "$W" | "$SUBMIT/agrep" "()*")"
+	assert_equal "$(echo "$W" | "$BIN/agrep" "()*")" "$(echo "$W" | "$SUBMIT/agrep" "()*" || err)"
     done
 
-    for RE in "(a|)(|a)aa" "(a|)(|a)(a|)(|a)aaaa" "(a|)(|a)(a|)(|a)(a|)(|a)aaaaaa"; do
-        for W in "" a aa aaa aaaa aaaaa aaaaaaa; do
+    for RE in "(|a)" "(|a)(|a)" "(|a)(|a)(|a)"; do
+        for W in "" b a ab aa aab aaa aaab; do
   	    echo -n "agrep \"$RE\" \"$W\": "
-	    assert_equal "$(echo "$W" | "$BIN/agrep" "$RE")" "$(echo "$W" | "$SUBMIT/agrep" "$RE")"
+	    assert_equal "$(echo "$W" | "$BIN/agrep" "$RE")" "$(echo "$W" | "$SUBMIT/agrep" "$RE" || err)"
         done
     done
     
-    echo "time agrep (this should look linear):"
-    RE=
-    W=
-    for I in $(seq 1 95); do
-	RE="(aa|a)(a|aa)${RE}aaaa"
-	W="${W}aaaa"
-	if [ $(($I**2/1000)) -gt $((($I-1)**2/1000)) ]; then
+    echo "time agrep (if it is Θ(n^2), this should look linear):"
+    RE=""
+    W="b"
+    for I in $(seq 1 400); do
+	RE="(|a)${RE}"
+	W="a${W}"
+	if [ $(($I**2/10000)) -gt $((($I-1)**2/10000)) ]; then
 	    printf "n=%3d: " "$I"
 	    echo $W | /usr/bin/time -p "$SUBMIT/agrep" $RE >$TMPDIR/n$I.out 2>$TMPDIR/n$I.time &
 	    wait $!
