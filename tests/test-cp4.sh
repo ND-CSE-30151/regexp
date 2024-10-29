@@ -65,8 +65,8 @@ else
 fi
 
 if [ -x "$SUBMIT/sat_to_re" ]; then
-    for PHI in examples/{sipser-phi.cnf,unsat-2.cnf,random-{1,2,3,4,5,6,7,8,9,10}.cnf}; do
-	echo -n "sat_to_re \"$PHI\": "
+    for PHI in $EXAMPLES/{sipser-phi.cnf,unsat-2.cnf,random-{1,2,3,4,5,6,7,8,9,10}.cnf}; do
+	echo -n "sat_to_re examples/$(basename $PHI) ...: "
 	"$SUBMIT/sat_to_re" "$PHI" "$TMPDIR/regexp" "$TMPDIR/string"
         if [ $? -ne 0 ]; then fail; continue; fi
 	if [ -z $("$BIN/bgrep" -f "$TMPDIR/regexp" "$TMPDIR/string") ]; then

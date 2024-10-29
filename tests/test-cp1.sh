@@ -37,54 +37,48 @@ err () {
 }
 
 if [ -x "$SUBMIT/nfa_path" ]; then
+    for W in "a"; do
+	echo -n "nfa_path examples/format.nfa \"$W\": "
+	assert_equal "$("$BIN/nfa_path" "$EXAMPLES/format.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/format.nfa" "$W" | head -1 || err)"
+    done
+    
     for W in 010110 111; do
-	echo -n "nfa_path sipser-n1.nfa \"$W\": "
+	echo -n "nfa_path examples/sipser-n1.nfa \"$W\": "
 	assert_equal "$("$BIN/nfa_path" "$EXAMPLES/sipser-n1.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/sipser-n1.nfa" "$W" | head -1 || err)"
     done
 
     for W in "" 0 1 00 01 10 11 000 001 010 011 100 101 110; do
-	echo -n "nfa_path sipser-n1.nfa \"$W\": "
+	echo -n "nfa_path examples/sipser-n1.nfa \"$W\": "
 	assert_nodiff <("$BIN/nfa_path" "$EXAMPLES/sipser-n1.nfa" "$W") <("$SUBMIT/nfa_path" "$EXAMPLES/sipser-n1.nfa" "$W" || err)
     done
 
     for W in "" 000000; do
-	echo -n "nfa_path sipser-n3.nfa \"$W\": "
+	echo -n "nfa_path examples/sipser-n3.nfa \"$W\": "
 	assert_equal "$("$BIN/nfa_path" "$EXAMPLES/sipser-n3.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/sipser-n3.nfa" "$W" | head -1 || err)"
     done
 
     for W in 0 00 000 0000 00000; do
-	echo -n "nfa_path sipser-n3.nfa \"$W\": "
+	echo -n "nfa_path examples/sipser-n3.nfa \"$W\": "
 	assert_nodiff <("$BIN/nfa_path" "$EXAMPLES/sipser-n3.nfa" "$W") <("$SUBMIT/nfa_path" "$EXAMPLES/sipser-n3.nfa" "$W" || err)
     done
 
     for W in "" a baba baa b bb babba; do
-	echo -n "nfa_path sipser-n4.nfa \"$W\": "
+	echo -n "nfa_path examples/sipser-n4.nfa \"$W\": "
 	assert_nodiff <("$BIN/nfa_path" "$EXAMPLES/sipser-n4.nfa" "$W") <("$SUBMIT/nfa_path" "$EXAMPLES/sipser-n4.nfa" "$W" || err)
     done
 
-    for W in "" a aa aaa; do
-	echo -n "nfa_path epsilons.nfa \"$W\": "
-	assert_equal "$("$BIN/nfa_path" "$EXAMPLES/epsilons.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/epsilons.nfa" "$W" | head -1 || err)"
+    for M in epsilons cycle cycle2; do
+      for W in "" a aa aaa; do
+	echo -n "nfa_path examples/$M.nfa \"$W\": "
+	assert_equal "$("$BIN/nfa_path" "$EXAMPLES/$M.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/$M.nfa" "$W" | head -1 || err)"
+      done
     done
 
-    for W in "" a; do
-	echo -n "nfa_path cycle.nfa \"$W\": "
-	assert_equal "$("$BIN/nfa_path" "$EXAMPLES/cycle.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/cycle.nfa" "$W" | head -1 || err)"
-    done
-
-    for W in "" b a ab aa aab aaa aaab; do
-	echo -n "nfa_path slow1.nfa \"$W\": "
-	assert_equal "$("$BIN/nfa_path" "$EXAMPLES/slow1.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/slow1.nfa" "$W" | head -1 || err)"
-    done
-
-    for W in "" b a ab aa aab aaa aaab; do
-	echo -n "nfa_path slow2.nfa \"$W\": "
-	assert_equal "$("$BIN/nfa_path" "$EXAMPLES/slow2.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/slow2.nfa" "$W" | head -1 || err)"
-    done
-
-    for W in "" b a ab aa aab aaa aaab; do
-	echo -n "nfa_path slow3.nfa \"$W\": "
-	assert_equal "$("$BIN/nfa_path" "$EXAMPLES/slow3.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/slow3.nfa" "$W" | head -1 || err)"
+    for M in slow1 slow2 slow3; do
+	for W in "" b a ab aa aab aaa aaab; do
+	    echo -n "nfa_path examples/$M.nfa \"$W\": "
+	    assert_equal "$("$BIN/nfa_path" "$EXAMPLES/$M.nfa" "$W" | head -1)" "$("$SUBMIT/nfa_path" "$EXAMPLES/$M.nfa" "$W" | head -1 || err)"
+	done
     done
 
     echo "time nfa_path (if it is Θ(n^2), this should look linear):"

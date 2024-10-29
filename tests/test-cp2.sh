@@ -33,8 +33,13 @@ err () {
 }
 
 if [ -x "$SUBMIT/parse_re" ]; then
-  for REGEXP in "(ab|a)*" "(a|b)*aba" "" "a" "a*" "ab" "abc" "abcd" "a|b" "a|b|c" "a|b|c|d" "a*b*" "(ab)*" "ab|cd" "(ab)|(cd)" "a*|b*" "(a|b)*" "(a)" "((a))" "a(b)" "(a)b" "()" "|" "(|)" "(a|)" "(|a)" "a||b"; do
-    echo -n 'parse_re "'"$REGEXP"'": '
+  for REGEXP in "'" '"'; do
+    printf "parse_re %q: " "$REGEXP"
+    assert_equal "$("$BIN/parse_re" "$REGEXP")" "$("$SUBMIT/parse_re" "$REGEXP" || err)"
+  done
+  
+  for REGEXP in "" "(ab|a)*" "(a|b)*aba" "" "a" "a*" "ab" "abc" "abcd" "a|b" "a|b|c" "a|b|c|d" "a*b*" "(ab)*" "ab|cd" "(ab)|(cd)" "a*|b*" "(a|b)*" "(a)" "((a))" "a(b)" "(a)b" "()" "|" "(|)" "(a|)" "(|a)" "a||b"; do
+    echo -n "parse_re \"$REGEXP\": "
     assert_equal "$("$BIN/parse_re" "$REGEXP")" "$("$SUBMIT/parse_re" "$REGEXP" || err)"
   done
 else
@@ -56,7 +61,7 @@ for OP in union concat; do
     for NFA1 in "$EXAMPLES"/sipser-n{1,2,3,4}.nfa; do
       for NFA2 in "$EXAMPLES"/sipser-n{1,2,3,4}.nfa; do
 
-        echo -n "${OP}_nfa $(basename "$NFA1") $(basename "$NFA2"): "
+        echo -n "${OP}_nfa examples/$(basename "$NFA1") examples/$(basename "$NFA2"): "
         "$BIN/compare_nfa" <("$BIN/${OP}_nfa" "$NFA1" "$NFA2") <("$SUBMIT/${OP}_nfa" "$NFA1" "$NFA2") >/dev/null
         assert_true
       done
@@ -68,7 +73,7 @@ done
 
 if [ -x "$SUBMIT/star_nfa" ]; then
   for NFA in "$EXAMPLES"/sipser-n{1,2,3,4}.nfa; do
-    echo -n "star_nfa $(basename "$NFA"): "
+    echo -n "star_nfa examples/$(basename "$NFA"): "
     "$BIN/compare_nfa" <("$BIN/star_nfa" "$NFA") <("$SUBMIT/star_nfa" "$NFA") >/dev/null
     assert_true
   done
@@ -89,28 +94,28 @@ fi
 
 if [ -x "$SUBMIT/agrep" ]; then
     for W in "" a b aa ab ba bb aaa aab aba abb baa bab bba bbb; do
-	echo -n "agrep \"(ab|a)*\" \"$W\": "
+	echo -n "echo \"$W\" | agrep \"(ab|a)*\": "
 	assert_equal "$(echo "$W" | "$BIN/agrep" "(ab|a)*")" "$(echo "$W" | "$SUBMIT/agrep" "(ab|a)*" || err)"
     done
 
     for W in "" a b aa ab ba bb aba abaa abab aaba baba aaaba ababa baaba bbaba; do
-	echo -n "agrep \"(a|b)*aba\" \"$W\": "
+	echo -n "echo \"$W\" | agrep \"(a|b)*aba\": "
 	assert_equal "$(echo "$W" | "$BIN/agrep" "(a|b)*aba")" "$(echo "$W" | "$SUBMIT/agrep" "(a|b)*aba" || err)"
     done
 
     for W in "" a; do
-	echo -n "agrep \"\" \"$W\": "
+	echo -n "echo \"$W\" | agrep \"\": "
 	assert_equal "$(echo "$W" | "$BIN/agrep" "")" "$(echo "$W" | "$SUBMIT/agrep" "" || err)"
     done
 
     for W in "" a; do
-	echo -n "agrep \"()*\" \"$W\": "
+	echo -n "echo \"$W\" | agrep \"()*\": "
 	assert_equal "$(echo "$W" | "$BIN/agrep" "()*")" "$(echo "$W" | "$SUBMIT/agrep" "()*" || err)"
     done
 
     for RE in "(|a)" "(|a)(|a)" "(|a)(|a)(|a)"; do
         for W in "" b a ab aa aab aaa aaab; do
-  	    echo -n "agrep \"$RE\" \"$W\": "
+  	    echo -n "echo \"$W\" | agrep \"$RE\": "
 	    assert_equal "$(echo "$W" | "$BIN/agrep" "$RE")" "$(echo "$W" | "$SUBMIT/agrep" "$RE" || err)"
         done
     done
