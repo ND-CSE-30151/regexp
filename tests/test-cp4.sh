@@ -31,7 +31,7 @@ err () {
 }
 
 if [ -x "$SUBMIT/parse_re" ]; then
-  for REGEXP in "(ab|a)*" "(a|b)*aba" "" "a" "a*" "ab" "abc" "abcd" "a|b" "a|b|c" "a|b|c|d" "a*b*" "(ab)*" "ab|cd" "(ab)|(cd)" "a*|b*" "(a|b)*" "(a)" "((a))" "a(b)" "(a)b" "()" "|" "(|)" "(a|)" "(|a)" "a||b" "()\1" "()()()()()()()()()()\10" "()()()()()()()()()()\10*" "()()()()()()()()()()\g<10>" "()()()()()()()()()()\g<1>0"; do
+  for REGEXP in "(ab|a)*" "(a|b)*aba" "" "a" "a*" "ab" "abc" "abcd" "a|b" "a|b|c" "a|b|c|d" "a*b*" "(ab)*" "ab|cd" "(ab)|(cd)" "a*|b*" "(a|b)*" "(a)" "((a))" "a(b)" "(a)b" "()" "|" "(|)" "(a|)" "(|a)" "a||b" "()\1" "()\1*" "()()()()()()()()()()\10" "()()()()()()()()()()\g<10>" "()()()()()()()()()()\g<10>*"; do
     echo -n 'parse_re "'"$REGEXP"'": '
     assert_equal "$("$BIN/parse_re" -g -b "$REGEXP")" "$("$SUBMIT/parse_re" "$REGEXP" || err)"
   done

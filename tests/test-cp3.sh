@@ -83,7 +83,7 @@ if [ -x "$SUBMIT/msed" ]; then
     done
 
     RE="(a|b)(c|d)(e|f)(g|h)(i|j)(k|l)(m|n)(o|p)(q|r)(s|t)"
-    for CMD in "s/$RE/\10/" "s/$RE/\g<1>0/" "s/$RE/\g<10>/"; do
+    for CMD in "s/$RE/\1/" "s/$RE/\10/" "s/$RE/\g<1>/" "s/$RE/\g<10>/"; do
 	for W in "acegikmoqs"; do
 	    echo -n "echo \"$W\" | msed -e \"$CMD\": "
 	    assert_equal "$(echo $W | "$BIN/msed" -e "$CMD")" "$(echo $W | "$SUBMIT/msed" -e "$CMD" || err)"
