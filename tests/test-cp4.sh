@@ -31,7 +31,7 @@ err () {
 }
 
 if [ -x "$SUBMIT/parse_re" ]; then
-  for REGEXP in "(ab|a)*" "(a|b)*aba" "" "a" "a*" "ab" "abc" "abcd" "a|b" "a|b|c" "a|b|c|d" "a*b*" "(ab)*" "ab|cd" "(ab)|(cd)" "a*|b*" "(a|b)*" "(a)" "((a))" "a(b)" "(a)b" "()" "|" "(|)" "(a|)" "(|a)" "a||b" "()\1" "()\1*" "()()()()()()()()()()\10" "()()()()()()()()()()\g<10>" "()()()()()()()()()()\g<10>*"; do
+  for REGEXP in "(ab|a)*" "(a|b)*aba" "" "a" "a*" "ab" "abc" "abcd" "a|b" "a|b|c" "a|b|c|d" "a*b*" "(ab)*" "ab|cd" "(ab)|(cd)" "a*|b*" "(a|b)*" "(a)" "((a))" "a(b)" "(a)b" "()" "|" "(|)" "(a|)" "(|a)" "a||b" "()\g<1>" "()\g<1>*" "()()()()()()()()()()\g<10>" "()()()()()()()()()()\g<10>*"; do
     echo -n 'parse_re "'"$REGEXP"'": '
     assert_equal "$("$BIN/parse_re" -g -b "$REGEXP")" "$("$SUBMIT/parse_re" "$REGEXP" || err)"
   done
@@ -40,21 +40,21 @@ else
 fi
 
 if [ -x "$SUBMIT/bgrep" ]; then
-    for REGEXP in "((a|b)*)\1" "(a|b)*\1"; do
+    for REGEXP in "((a|b)*)\g<1>" "(a|b)*\g<1>"; do
 	for W in "" abb aba baabaa aabbaa; do
 	    echo -n "echo \"$W\" | bgrep \"$REGEXP\": "
             assert_equal "$(echo "$W" | "$BIN/bgrep" "$REGEXP")" "$(echo "$W" | "$SUBMIT/bgrep" "$REGEXP" || err)"
 	done
     done
 
-    for REGEXP in "(aaa*)\1\1*" "()*"; do
+    for REGEXP in "(aaa*)\g<1>\g<1>*" "()*"; do
 	for W in "" a aa aaa aaaa aaaaa aaaaaaaaaaaaaaaaaaaaaaaaa; do
 	    echo -n "echo \"$W\" | bgrep \"$REGEXP\": "
 	    assert_equal "$(echo "$W" | "$BIN/bgrep" "$REGEXP")" "$(echo "$W" | "$SUBMIT/bgrep" "$REGEXP" || err)"
 	done
     done
     
-    for REGEXP in "(a*)(a*)#\1#\1"; do
+    for REGEXP in "(a*)(a*)#\g<1>#\g<1>"; do
 	for W in "aa##" "aa#a#a" "aa#aa#aa" "aa#a#aa" "aa#aa#a"; do
 	    echo -n "echo \"$W\" | bgrep \"$REGEXP\": "
 	    assert_equal "$(echo "$W" | "$BIN/bgrep" "$REGEXP")" "$(echo "$W" | "$SUBMIT/bgrep" "$REGEXP" || err)"

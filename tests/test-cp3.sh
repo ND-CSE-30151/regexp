@@ -63,13 +63,13 @@ fi
 
 if [ -x "$SUBMIT/msed" ]; then
 
-    CMD="s/(a*)(b*)/\2\1/"
+    CMD="s/(a*)(b*)/\g<2>\g<1>/"
     for W in "" "aaa" "bbb" "aaabbb" "bbbaaa"; do
 	echo -n "echo \"$W\" | msed -e \"$CMD\": "
 	assert_equal "$(echo $W | "$BIN/msed" -e "$CMD")" "$(echo $W | "$SUBMIT/msed" -e "$CMD" || err)"
     done
 
-    for CMD in "s/((a|b)*)/\1,\1,\1/" "s/((a|b)*)/\2,\2,\2/"; do
+    for CMD in "s/((a|b)*)/\g<1>,\g<1>,\g<1>/" "s/((a|b)*)/\g<2>,\g<2>,\g<2>/"; do
 	for W in "" "baa"; do
 	    echo -n "echo \"$W\" | msed -e \"$CMD\": "
 	    assert_equal "$(echo $W | "$BIN/msed" -e "$CMD")" "$(echo $W | "$SUBMIT/msed" -e "$CMD" || err)"
@@ -83,7 +83,7 @@ if [ -x "$SUBMIT/msed" ]; then
     done
 
     RE="(a|b)(c|d)(e|f)(g|h)(i|j)(k|l)(m|n)(o|p)(q|r)(s|t)"
-    for CMD in "s/$RE/\1/" "s/$RE/\10/" "s/$RE/\g<1>/" "s/$RE/\g<10>/"; do
+    for CMD in "s/$RE/\g<1>/" "s/$RE/\g<10>/"; do
 	for W in "acegikmoqs"; do
 	    echo -n "echo \"$W\" | msed -e \"$CMD\": "
 	    assert_equal "$(echo $W | "$BIN/msed" -e "$CMD")" "$(echo $W | "$SUBMIT/msed" -e "$CMD" || err)"
@@ -110,9 +110,9 @@ if [ -x "$SUBMIT/msed" ]; then
 	W="a${W}"
 	if [ $(($I**2/10000)) -gt $((($I-1)**2/10000)) ]; then
 	    printf "n=%3d: " "$I"
-	    echo $W | /usr/bin/time -p "$SUBMIT/msed" -e "s/$RE/\1/" >$TMPDIR/n$I.out 2>$TMPDIR/n$I.time &
+	    echo $W | /usr/bin/time -p "$SUBMIT/msed" -e "s/$RE/\g<1>/" >$TMPDIR/n$I.out 2>$TMPDIR/n$I.time &
 	    wait $!
-            diff <(echo $W | "$BIN/msed" -e "s/$RE/\1/") $TMPDIR/n$I.out || echo "FAILED"
+            diff <(echo $W | "$BIN/msed" -e "s/$RE/\g<1>/") $TMPDIR/n$I.out || echo "FAILED"
 	    awk '/^(user|sys)/ { t += $2; } !/(^(real|user|sys))/ { print "WARNING:", $0; } END { printf "%*s\n", t*10, "*"; }' $TMPDIR/n$I.time
 	fi
     done
