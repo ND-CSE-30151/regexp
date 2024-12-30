@@ -46,14 +46,22 @@ else
   echo "parse_re: SKIPPED"
 fi
 
-if [ -x "$SUBMIT/string_nfa" ]; then
-  for W in "" "a" "ab"; do
-    echo -n "string_nfa \"$W\": "
-    "$BIN/compare_nfa" <("$BIN/string_nfa" "$W") <("$SUBMIT/string_nfa" "$W") >/dev/null
+if [ -x "$SUBMIT/epsilon_nfa" ]; then
+  echo -n "epsilon_nfa: "
+  "$BIN/compare_nfa" <("$BIN/epsilon_nfa") <("$SUBMIT/epsilon_nfa") >/dev/null
+  assert_true
+else
+  echo "epsilon_nfa: SKIPPED"
+fi
+
+if [ -x "$SUBMIT/symbol_nfa" ]; then
+  for A in "a" "b"; do
+    echo -n "symbol_nfa \"$A\": "
+    "$BIN/compare_nfa" <("$BIN/symbol_nfa" "$A") <("$SUBMIT/symbol_nfa" "$A") >/dev/null
     assert_true
   done
 else
-  echo "string_nfa: SKIPPED"
+  echo "symbol_nfa: SKIPPED"
 fi
 
 for OP in union concat; do
