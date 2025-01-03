@@ -10,6 +10,14 @@ trap "rm -rf $TMPDIR" EXIT
 trap "pkill -9 -g0; exit 130" INT
 set -o pipefail
 
+assert_true () {
+  if [ $? -eq 0 ]; then
+    echo PASSED
+  else
+    echo FAILED
+  fi
+}
+
 assert_equal () {
   if [ "$1" = "$2" ]; then
     echo "PASSED"
@@ -35,6 +43,24 @@ assert_nodiff () {
 err () {
   echo "(error)"
 }
+
+if [ -x "$SUBMIT/epsilon_nfa" ]; then
+  echo -n "epsilon_nfa: "
+  "$BIN/compare_nfa" <("$BIN/epsilon_nfa") <("$SUBMIT/epsilon_nfa") >/dev/null
+  assert_true
+else
+  echo "epsilon_nfa: SKIPPED"
+fi
+
+if [ -x "$SUBMIT/symbol_nfa" ]; then
+  for A in "a" "b"; do
+    echo -n "symbol_nfa \"$A\": "
+    "$BIN/compare_nfa" <("$BIN/symbol_nfa" "$A") <("$SUBMIT/symbol_nfa" "$A") >/dev/null
+    assert_true
+  done
+else
+  echo "symbol_nfa: SKIPPED"
+fi
 
 if [ -x "$SUBMIT/nfa_path" ]; then
     for W in "a"; do
